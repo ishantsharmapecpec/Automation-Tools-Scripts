@@ -1,0 +1,332 @@
+Sub loop_on_each_pdf()
+
+Set oFSO = CreateObject("scripting.Filesystemobject")
+Set ofolder = oFSO.GetFolder("\\rammdhfile02\Filery Supplementary Folders\Buildings\2023\RUK2023N00283 - HS2 Curzon Station CAT III Checking\4 Delivery\Geo\11 Analyses\WP05\Repute extracted all pdfs")
+
+'Dim next_row As Integer
+'last_row = Sheets("output_sheet").Cells(Rows.Count, "A").End(xlUp).Row
+'next_row = last_row + 1
+
+
+
+Dim e As Integer
+e = 1
+Dim r As Integer
+r = 7
+For Each oFile In ofolder.Files
+
+  If oFile Like "*.pdf" And Left(oFile.Name, 2) <> "~$" Then
+  Debug.Print oFile.Path
+  
+  
+  If r <= 7 * e Then
+          Cells(r, 1) = oFile.Path
+    r = r + 7
+  End If
+  
+  
+    
+    Call read_single_pdf(oFile.Path, 7 * e)
+  'Debug.Print e
+  e = e + 1
+  End If
+
+Next oFile
+
+End Sub
+
+
+Function read_single_pdf(in_file_path As String, in_row_counter As Integer)
+'Sub read_single_pdf()
+Dim word_app As Word.Application
+Dim word_doc As Word.Document
+
+Dim clean_text, table_text, summary_text, all_text, file_name As String
+Dim txt_line_1, text_line_2, city_name, item_name, zip_code As String
+
+'Dim array_1() As String, array_2() As String, array_3() As String, array_4() As String, array_5() As String, array_6() As String, array_7() As String, array_8() As String, array_9() As String, array_10() As String, array_11() As String, array_12() As String
+'ReDim array_1(0 To 2)
+'ReDim array_2(0 To 2)
+'ReDim array_3(0 To 2)
+'ReDim array_4(0 To 2)
+'ReDim array_5(0 To 2)
+'ReDim array_6(0 To 2)
+'ReDim array_7(0 To 5)
+'ReDim array_8(0 To 5)
+'ReDim array_9(0 To 5)
+'ReDim array_10(0 To 8)
+'ReDim array_11(0 To 11)
+'ReDim array_12(0 To 11)
+
+Set word_app = New Word.Application
+word_app.Visible = False
+word_app.DisplayAlerts = False
+
+Dim objRE As New RegExp
+objRE.MultiLine = True
+objRE.Global = True
+
+
+'file_name = "\\rammdhfile02\filery supplementary folders\Buildings\2023\RUK2023N00283 - HS2 Curzon Station CAT III Checking\4 Delivery\Geo\11 Analyses\WP05\Repute extracted pdfs\Pile group 6.1.1 Type 1 GL 7.pdf"
+
+
+
+
+
+'Set word_doc = word_app.Documents.Open(file_name, False)
+Set word_doc = word_app.Documents.Open(in_file_path, False)
+all_text = word_doc.Content
+
+'objRE.Pattern = "(^.*Stiffness coefficients for pile group )(.*)(Flexibility coefficients for pile group *)"
+objRE.Pattern = "(^.*Stiffness coefficients for pile group )(.*)( Rotation point*)"
+table_text = objRE.Replace(all_text, "$2")                                                                              ' Use Regex Pattern for getting text between two diffrent phrases/words
+summary_text = objRE.Replace(all_text, "$1")
+'Debug.Print table_text
+
+objRE.Pattern = "[^-./a-zA-Z0-9]"
+clean_text = objRE.Replace(table_text, " ")
+'Debug.Print clean_text
+
+objRE.Pattern = "(^.*Fx  GN)(.*)(Fy  GN.*)"
+text_line_1 = objRE.Replace(clean_text, "$2")
+text_line_1 = Trim(text_line_1)
+'Debug.Print text_line_1
+
+objRE.Pattern = "(^.*Fy  GN)(.*)(Fz  GN.*)"
+text_line_2 = objRE.Replace(clean_text, "$2")
+text_line_2 = Trim(text_line_2)
+'Debug.Print text_line_2
+
+objRE.Pattern = "(^.*Fz  GN)(.*)(Mx  GNm.*)"
+text_line_3 = objRE.Replace(clean_text, "$2")
+text_line_3 = Trim(text_line_3)
+'Debug.Print text_line_3
+
+objRE.Pattern = "(^.*Mx  GNm)(.*)(My  GNm.*)"
+text_line_4 = objRE.Replace(clean_text, "$2")
+text_line_4 = Trim(text_line_4)
+'Debug.Print text_line_4
+
+objRE.Pattern = "(^.*My  GNm)(.*)(Mz  GNm.*)"
+text_line_5 = objRE.Replace(clean_text, "$2")
+text_line_5 = Trim(text_line_5)
+'Debug.Print text_line_5
+
+objRE.Pattern = "(^.*Mz  GNm)(.*)(linear elastic model only  vs Fx.*)"
+text_line_6 = objRE.Replace(clean_text, "$2")
+text_line_6 = Trim(text_line_6)
+'Debug.Print text_line_6
+
+objRE.Pattern = "(^.*x  /rad)(.*)(vs Mx  /GNm.*)"
+text_coloumn_1 = objRE.Replace(clean_text, "$2")
+text_coloumn_1 = Trim(text_coloumn_1)
+'Debug.Print text_coloumn_1
+objRE.Pattern = "(^.*y  /rad)(.*)(vs My  /GNm.*)"
+text_coloumn_2 = objRE.Replace(clean_text, "$2")
+text_coloumn_2 = Trim(text_coloumn_2)
+'Debug.Print text_coloumn_2
+
+objRE.Pattern = "(^.*vs  z  /rad)(.*)(vs Mz  /GNm.*)"
+text_coloumn_3 = objRE.Replace(clean_text, "$2")
+text_coloumn_3 = Trim(text_coloumn_3)
+'Debug.Print text_coloumn_3
+
+
+
+array_1 = Split(text_line_1, " ")
+array_2 = Split(text_line_2, " ")
+array_3 = Split(text_line_3, " ")
+array_4 = Split(text_line_4, " ")
+array_5 = Split(text_line_5, " ")
+array_6 = Split(text_line_6, " ")
+array_7 = Split(text_coloumn_1, " ")
+array_8 = Split(text_coloumn_2, " ")
+array_9 = Split(text_coloumn_3, " ")
+'Debug.Print array_6(0)
+
+
+
+
+If array_6(0) = "Repute" Then
+
+    objRE.Pattern = "(^.*Fx  GN)(.*)(Flexibility coefficients.*)"
+    text_coloumn_7 = objRE.Replace(clean_text, "$2")
+    objRE.Pattern = "[^-.0-9]"
+    text_coloumn_7 = objRE.Replace(text_coloumn_7, " ")
+    text_coloumn_7 = Trim(text_coloumn_7)
+    'Debug.Print text_coloumn_7
+    
+    objRE.Pattern = "(^.*sz  /m)(.*)(inear elastic model.*)"
+    text_coloumn_8 = objRE.Replace(clean_text, "$2")
+    text_coloumn_8 = Trim(text_coloumn_8)
+    text_coloumn_8 = Replace(text_coloumn_8, "  ", " ")
+    'Debug.Print text_coloumn_8
+
+    objRE.Pattern = "(^.*x  /rad)(.*)(vs Mx  /GNm.*)"
+    text_coloumn_9 = objRE.Replace(clean_text, "$2")
+    text_coloumn_9 = Trim(text_coloumn_9)
+    'Debug.Print text_coloumn_9
+    
+    objRE.Pattern = "(^.*y  /rad)(.*)(vs My  /GNm.*)"
+    text_coloumn_10 = objRE.Replace(clean_text, "$2")
+    text_coloumn_10 = Trim(text_coloumn_10)
+    'Debug.Print text_coloumn_10
+    
+    objRE.Pattern = "(^.*z  /rad  )(.*)(vs Mz  /GNm.*)"
+    text_coloumn_11 = objRE.Replace(clean_text, "$2")
+    text_coloumn_11 = Trim(text_coloumn_11)
+    'Debug.Print text_coloumn_11
+    
+       
+     array_13 = Split(text_coloumn_7, "         ")
+     array_14 = Split(text_coloumn_8, " ")
+     array_15 = Split(text_coloumn_9, " ")
+     array_16 = Split(text_coloumn_10, " ")
+     array_17 = Split(text_coloumn_11, " ")
+     'Debug.Print array_13(1)
+     
+     'Dim arraylength As Integer
+     'arraylength = UBound(array_13) - LBound(array_13) + 1
+     'Debug.Print arraylength
+     q = 0
+     y = 0
+   For w = in_row_counter To in_row_counter + 5
+    
+    
+    'For w = 7 To 12
+          Cells(w, 6) = array_14(y)
+          y = y + 1
+          Cells(w, 7) = array_14(y)
+          y = y + 1
+     
+    
+          Cells(w, 5) = array_13(q)
+          
+          Cells(w, 8) = array_15(q)
+          Cells(w, 9) = array_16(q)
+          Cells(w, 10) = array_17(q)
+      q = q + 1
+     Next w
+     
+ElseIf array_7(0) = "vs" Then
+
+    objRE.Pattern = "(^.*z  rad)(.*)(vs Mx  /GNm.*)"
+    text_coloumn_4 = objRE.Replace(clean_text, "$2")
+    text_coloumn_4 = Trim(text_coloumn_4)
+    'Debug.Print text_coloumn_4
+    objRE.Pattern = "(^.*Mx  /GNm)(.*)(vs My  /GNm.*)"
+    text_coloumn_5 = objRE.Replace(clean_text, "$2")
+    text_coloumn_5 = Trim(text_coloumn_5)
+    'Debug.Print text_coloumn_5
+
+    objRE.Pattern = "(^.*vs My  /GNm)(.*)(vs Mz  /GNm.*)"
+    text_coloumn_6 = objRE.Replace(clean_text, "$2")
+    text_coloumn_6 = Trim(text_coloumn_6)
+    'Debug.Print text_coloumn_6
+    
+     array_10 = Split(text_coloumn_4, " ")
+     array_11 = Split(text_coloumn_5, " ")
+     array_12 = Split(text_coloumn_6, " ")
+     
+     'Dim arraylength As Integer
+     'arraylength = UBound(array_10) - LBound(array_10) + 1
+     'Debug.Print arraylength
+     
+    'Debug.Print array_11(1)
+    'Debug.Print array_11(2)
+    Dim i As Integer
+
+    Dim j As Integer
+    'j = 7
+    j = in_row_counter
+    For i = 5 To 7
+       Cells(j, i) = array_1(i - 5)
+       Cells(j + 1, i) = array_2(i - 5)
+       Cells(j + 2, i) = array_3(i - 5)
+       Cells(j + 3, i) = array_4(i - 5)
+       Cells(j + 4, i) = array_5(i - 5)
+       Cells(j + 5, i) = array_6(i - 5)
+       
+    Next i
+    v = 4
+    For w = in_row_counter To in_row_counter + 5
+    
+    'For w = 7 To 12
+         Cells(w, 8) = array_10(v)
+         Cells(w, 9) = array_11(v + 3)
+         Cells(w, 10) = array_12(v + 3)
+     v = v + 1
+     Next w
+    'Debug.Print w
+
+ 
+Else
+
+'Dim i As Integer
+
+'Dim j As Integer
+'j = 7
+j = in_row_counter
+    For i = 5 To 7
+       Cells(j, i) = array_1(i - 5)
+       Cells(j + 1, i) = array_2(i - 5)
+       Cells(j + 2, i) = array_3(i - 5)
+       Cells(j + 3, i) = array_4(i - 5)
+       Cells(j + 4, i) = array_5(i - 5)
+       Cells(j + 5, i) = array_6(i - 5)
+       
+    Next i
+
+    v = 0
+
+   For w = in_row_counter To in_row_counter + 5
+    
+   'For w = 7 To 12
+         Cells(w, 8) = array_7(v)
+         Cells(w, 9) = array_8(v)
+         Cells(w, 10) = array_9(v)
+    v = v + 1
+    Next w
+   'Debug.Print w
+
+End If
+
+Dim cell As Range
+    Dim rng As Range
+    
+    ' Assuming the range you want to check is A1:C3
+    Set rng = Range("e7:j10000")
+    
+    For Each cell In rng
+        If CellContainsRealNumbers(cell) Then
+            cell.Interior.Color = RGB(0, 255, 0) ' Highlight the cell in green
+        Else
+            cell = "Please add these values manually and cross check the others for this pdf"
+            cell.Interior.Color = RGB(255, 0, 0) ' Highlight the cell in red
+        End If
+    Next cell
+    
+word_doc.Close True
+word_app.Quit
+
+
+End Function
+Function CellContainsRealNumbers(cell As Range) As Boolean
+    Dim cellValue As Variant
+    
+    ' Get the value of the cell
+    cellValue = cell.Value
+    
+    ' Check if the cell value is numeric and not empty
+    If IsNumeric(cellValue) And Not IsEmpty(cellValue) Then
+        CellContainsRealNumbers = True
+    End If
+End Function
+
+
+
+
+
+
+
+
