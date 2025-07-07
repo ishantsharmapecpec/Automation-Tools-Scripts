@@ -44,7 +44,7 @@ Robust Parsing: Handles various XML structures and updates accordingly
 Manual Process: Coping these load cases with this much detail can easily take weeks depending on the complexity and format variations.
 Script Execution: Completed the entire extraction in just less than 1 minutes, significantly reducing time-to-completion with 100% accuracy. 
 
-Script 3
+Script 3 (Script 3 in action:- It is a video which shows how the script works automatically without human intervention. It takes the control of your cursor and do the required actions)
 
 (a) Overview
 Objective: Streamline the process of extracting and compiling pile and pile cap responses for engineering analysis.
